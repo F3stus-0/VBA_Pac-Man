@@ -25,7 +25,7 @@ Partial Class GameForm
         components = New System.ComponentModel.Container()
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(800, 450)
-        Text = "Form1"
+        Text = "GameForm"
     End Sub
 
 End Class
