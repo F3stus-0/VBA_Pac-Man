@@ -4,10 +4,12 @@
     Public Const Height As Integer = 31
 
     Private MapMatrix(Width - 1, Height - 1) As Integer
+    Public PacDotMap(Width - 1, Height - 1) As Boolean
 
     Public Sub New()
 
         Dim classicMap As Integer(,) = MapData.GetClassicMap()
+
 
         For Y As Integer = 0 To Height - 1
 
@@ -18,6 +20,20 @@
             Next
 
         Next
+        For Y As Integer = 0 To Height - 1
+
+            For X As Integer = 0 To Width - 1
+
+                If classicMap(X, Y) = CInt(TileType.Path) Then
+                    PacDotMap(X, Y) = True
+                Else
+                    PacDotMap(X, Y) = False
+                End If
+
+            Next
+
+        Next
+
 
     End Sub
 
@@ -39,10 +55,23 @@
 
     End Function
 
+    Public Function Has_Pellet(X As Integer, Y As Integer) As Boolean
+
+        Return PacDotMap(X, Y)
+
+    End Function
+
     ''' <summary>
     ''' Indica si una posicion puede ser atravesada.
     ''' </summary>
     Public Function IsWalkable(X As Integer, Y As Integer) As Boolean
+
+        Dim tile = GetTile(X, Y)
+
+        Return tile <> TileType.Wall And tile <> TileType.GhostHouseDoor
+
+    End Function
+    Public Function IsGhostWalkable(X As Integer, Y As Integer) As Boolean
 
         Dim tile = GetTile(X, Y)
 

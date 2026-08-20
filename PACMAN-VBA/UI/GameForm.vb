@@ -66,6 +66,9 @@
     )
 
         Pacman.Update()
+        If Map.Has_Pellet(Pacman.X, Pacman.Y) Then
+            Map.PacDotMap(Pacman.X, Pacman.Y) = False
+        End If
 
         Me.Invalidate()
 
@@ -114,29 +117,32 @@
 
                     Case TileType.Path
 
-                        Dim dotSize As Integer = TileSize \ 5
+                        If Map.Has_Pellet(x, y) = True Then
+                            Dim dotSize As Integer = TileSize \ 5
 
-                        Dim dotX As Integer =
-                            x * TileSize +
-                            (TileSize - dotSize) \ 2
+                            Dim dotX As Integer =
+                                x * TileSize +
+                                (TileSize - dotSize) \ 2
 
-                        Dim dotY As Integer =
-                            y * TileSize +
-                            (TileSize - dotSize) \ 2
+                            Dim dotY As Integer =
+                                y * TileSize +
+                                (TileSize - dotSize) \ 2
 
-                        Using brush As New SolidBrush(
-                            Color.FromArgb(255, 204, 0)
-                        )
-
-                            g.FillEllipse(
-                                brush,
-                                dotX,
-                                dotY,
-                                dotSize,
-                                dotSize
+                            Using brush As New SolidBrush(
+                                Color.FromArgb(255, 204, 0)
                             )
 
-                        End Using
+                                g.FillEllipse(
+                                    brush,
+                                    dotX,
+                                    dotY,
+                                    dotSize,
+                                    dotSize
+                                )
+
+                            End Using
+                        End If
+
 
                     Case TileType.GhostHouseInterior
 
