@@ -7,6 +7,8 @@
     Private Const UHeight As Integer = 60
     Public Score As Integer = 0
     Private GameTimer As New Timer()
+    Private FrightenedTimeRemaining As Single = 0
+    Private Const FrightenedDuration As Single = 6.0F
 
     Public Sub New()
         InitializeComponent()
@@ -42,25 +44,28 @@
         End Select
     End Sub
 
-    Private Sub GameTimer_Tick(
-    sender As Object,
-    e As EventArgs
-)
+    Private Sub GameTimer_Tick(sender As Object, e As EventArgs)
         Pacman.Update()
 
         Dim mapX As Integer = Pacman.GetMapX()
         Dim mapY As Integer = Pacman.GetMapY()
 
-        If Map.Has_Pellet(mapX, mapY) Then
-
+        If Map.Has_PowerPellet(mapX, mapY) Then
+            Map.PowerPelletMap(mapX, mapY) = False
+            Score += 50
+            FrightenedTimeRemaining = FrightenedDuration
+            ' TODO once ghosts exist: tell each ghost.StateMachine.ChangeState(New FrighttenedState())
+        ElseIf Map.Has_Pellet(mapX, mapY) Then
             Map.PacDotMap(mapX, mapY) = False
-
             Score += 10
+        End If
 
+        If FrightenedTimeRemaining > 0 Then
+            FrightenedTimeRemaining -= GameTimer.Interval / 1000.0F
+            If FrightenedTimeRemaining < 0 Then FrightenedTimeRemaining = 0
         End If
 
         Me.Invalidate()
-
     End Sub
 
     Private Sub DrawMap(sender As Object, e As PaintEventArgs)
@@ -85,7 +90,16 @@
                         End Using
 
                     Case TileType.Path
-                        If Map.Has_Pellet(x, y) Then
+                        If Map.Has_PowerPellet(x, y) Then
+                            If (Environment.TickCount \ 200) Mod 2 = 0 Then
+                                Dim dotSize = TileSize \ 2
+                                Dim dotX = x * TileSize + (TileSize - dotSize) \ 2
+                                Dim dotY = y * TileSize + (TileSize - dotSize) \ 2
+                                Using b As New SolidBrush(Color.FromArgb(255, 204, 0))
+                                    g.FillEllipse(b, dotX, dotY, dotSize, dotSize)
+                                End Using
+                            End If
+                        ElseIf Map.Has_Pellet(x, y) Then
                             Dim dotSize = TileSize \ 5
                             Dim dotX = x * TileSize + (TileSize - dotSize) \ 2
                             Dim dotY = y * TileSize + (TileSize - dotSize) \ 2

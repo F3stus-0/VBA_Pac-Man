@@ -5,6 +5,15 @@
 
     Private MapMatrix(Width - 1, Height - 1) As Integer
     Public PacDotMap(Width - 1, Height - 1) As Boolean
+    Public PowerPelletMap(Width - 1, Height - 1) As Boolean
+
+    ' Classic 4-corner power pellet spots — adjust if your maze layout differs
+    Private ReadOnly PowerPelletPositions As Point() = {
+    New Point(1, 3),
+    New Point(26, 3),
+    New Point(1, 28),
+    New Point(26, 28)
+}
 
     Public Sub New()
 
@@ -12,28 +21,28 @@
 
 
         For Y As Integer = 0 To Height - 1
-
             For X As Integer = 0 To Width - 1
-
                 MapMatrix(X, Y) = classicMap(X, Y)
-
             Next
 
         Next
         For Y As Integer = 0 To Height - 1
 
             For X As Integer = 0 To Width - 1
-
                 If classicMap(X, Y) = CInt(TileType.Path) Then
                     PacDotMap(X, Y) = True
                 Else
                     PacDotMap(X, Y) = False
                 End If
-
             Next
-
         Next
 
+        For Each p In PowerPelletPositions
+            If GetTile(p.X, p.Y) = TileType.Path Then
+                PowerPelletMap(p.X, p.Y) = True
+                PacDotMap(p.X, p.Y) = False ' don't double-count as a normal pellet
+            End If
+        Next
 
     End Sub
 
@@ -56,9 +65,11 @@
     End Function
 
     Public Function Has_Pellet(X As Integer, Y As Integer) As Boolean
-
         Return PacDotMap(X, Y)
+    End Function
 
+    Public Function Has_PowerPellet(X As Integer, Y As Integer) As Boolean
+        Return PowerPelletMap(X, Y)
     End Function
 
     ''' <summary>
