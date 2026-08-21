@@ -1,318 +1,193 @@
 ﻿Public Class PacMan
 
-    ' ==========================================
-    ' CONFIGURACIÓN
-    ' ==========================================
-
-    ' Cada tile del mapa tiene 2 posiciones lógicas.
-
-    ' Tile de mapa:
-    ' 24 x 24 px
-
-    ' Posición lógica:
-    ' 12 x 12 px
-
-    ' Por lo tanto:
-    ' 2 posiciones lógicas = 1 tile
-
+    ' 2 unidades lógicas = 1 tile (24 px). 1 unidad = 12 px.
     Private Const LogicalUnitsPerTile As Integer = 2
-
-
-    ' ==========================================
-    ' POSICIÓN
-    ' ==========================================
-
-    ' X e Y NO son coordenadas del mapa.
-
-    ' Son coordenadas lógicas.
-
-    ' Ejemplo:
-
-    ' X = 26
-    ' significa:
-    ' 26 * 12 = 312 píxeles
-
-    ' Eso corresponde al tile:
-    ' 26 \ 2 = 13
-
-    Public Property X As Integer
-    Public Property Y As Integer
-
-
-    ' ==========================================
-    ' DIRECCIONES
-    ' ==========================================
-
+    Private Const TileSize As Integer = 24
+    Private Const PacmanSize As Integer = 20
+    Public Property X As Integer  ' Posición lógica (centro X)
+    Public Property Y As Integer  ' Posición lógica (centro Y)
     Public Property Direction As Direction
     Public Property NextDirection As Direction
 
-
-    ' ==========================================
-    ' MAPA
-    ' ==========================================
-
     Private ReadOnly Map As GameMap
 
-
-    ' ==========================================
-    ' CONSTRUCTOR
-    ' ==========================================
-
     Public Sub New(gameMap As GameMap)
-
         Map = gameMap
 
-        ' ======================================
-        ' POSICIÓN INICIAL
-        ' ======================================
-
-        ' Tile original:
-
-        ' X = 13
-        ' Y = 24
-
-        ' Convertimos a unidades lógicas:
-
-        ' 13 * 2 = 26
-        ' 24 * 2 = 48
-
+        ' Posición inicial en tile (13,24), centrado (+1 en cada coordenada lógica)
         X = 13 * LogicalUnitsPerTile + 1
         Y = 24 * LogicalUnitsPerTile + 1
 
-
-        ' ======================================
-        ' DIRECCIÓN INICIAL
-        ' ======================================
-
         Direction = Direction.None
         NextDirection = Direction.None
-
     End Sub
-
-
-    ' ==========================================
-    ' CAMBIAR DIRECCIÓN
-    ' ==========================================
 
     Public Sub SetDirection(newDirection As Direction)
-
         NextDirection = newDirection
-
     End Sub
-
-
-    ' ==========================================
-    ' ACTUALIZAR PAC-MAN
-    ' ==========================================
 
     Public Sub Update()
-
-        ' ==========================================
-        ' INTENTAR CAMBIAR DE DIRECCIÓN
-        ' ==========================================
-
+        ' Intentar cambiar dirección en centro de tile:
         If IsCenteredOnTile() Then
-
             If CanMove(NextDirection) Then
-
                 Direction = NextDirection
-
             End If
-
         End If
 
-
-        ' ==========================================
-        ' AVANZAR
-        ' ==========================================
-
+        ' Avanzar en la dirección actual si es posible:
         If CanMove(Direction) Then
-
             Select Case Direction
-
                 Case Direction.Up
-
                     Y -= 1
-
                 Case Direction.Down
-
                     Y += 1
-
                 Case Direction.Left
-
                     X -= 1
-
                 Case Direction.Right
-
                     X += 1
-
             End Select
-
         End If
-
     End Sub
 
-
-    ' ==========================================
-    ' COMPROBAR SI PAC-MAN PUEDE MOVERSE
-    ' ==========================================
-
     Private Function CanMove(
-        directionToCheck As Direction
-    ) As Boolean
-
-
-        ' ======================================
-        ' SIN DIRECCIÓN = NO MOVER
-        ' ======================================
+    directionToCheck As Direction
+) As Boolean
 
         If directionToCheck = Direction.None Then
-
             Return False
-
         End If
 
+        ' ==========================================
+        ' POSICIÓN ACTUAL EN PÍXELES
+        ' ==========================================
 
-        ' ======================================
-        ' POSICIÓN LÓGICA QUE TENDRÍA
-        ' ======================================
+        Dim currentPixelX As Single =
+        X * (TileSize / 2.0F)
 
-        Dim newX As Integer = X
-        Dim newY As Integer = Y
+        Dim currentPixelY As Single =
+        Y * (TileSize / 2.0F)
 
+        ' ==========================================
+        ' POSICIÓN FUTURA
+        ' ==========================================
+
+        Dim newPixelX As Single = currentPixelX
+        Dim newPixelY As Single = currentPixelY
+
+        Dim logicalStep As Single =
+        TileSize / 2.0F
 
         Select Case directionToCheck
 
             Case Direction.Up
-
-                newY -= 1
+                newPixelY -= logicalStep
 
             Case Direction.Down
-
-                newY += 1
+                newPixelY += logicalStep
 
             Case Direction.Left
-
-                newX -= 1
+                newPixelX -= logicalStep
 
             Case Direction.Right
-
-                newX += 1
+                newPixelX += logicalStep
 
         End Select
 
+        ' ==========================================
+        ' BORDES DE PAC-MAN
+        ' ==========================================
 
-        ' ======================================
-        ' CONVERTIR POSICIÓN LÓGICA A TILE
-        ' ======================================
-
-        ' Ejemplo:
-
-        ' 26 \ 2 = 13
-        ' 27 \ 2 = 13
-        ' 28 \ 2 = 14
-
-        ' De esta forma sabemos en qué tile
-        ' está la nueva posición.
-
-        Dim mapX As Integer =
-            newX \ LogicalUnitsPerTile
-
-        Dim mapY As Integer =
-            newY \ LogicalUnitsPerTile
+        Dim halfSize As Single =
+        PacmanSize / 2.0F
 
 
-        ' ======================================
-        ' COMPROBAR LÍMITES
-        ' ======================================
+        Dim left As Single =
+        newPixelX - halfSize
 
-        If mapX < 0 OrElse
-           mapX >= GameMap.Width OrElse
-           mapY < 0 OrElse
-           mapY >= GameMap.Height Then
+        Dim right As Single =
+        newPixelX + halfSize
+
+        Dim top As Single =
+        newPixelY - halfSize
+
+        Dim bottom As Single =
+        newPixelY + halfSize
+
+        ' ==========================================
+        ' TILES QUE TOCA PAC-MAN
+        ' ==========================================
+
+        Dim leftTile As Integer =
+        CInt(Math.Floor(left / TileSize))
+
+        Dim rightTile As Integer =
+        CInt(Math.Floor((right - 0.01F) / TileSize))
+
+        Dim topTile As Integer =
+        CInt(Math.Floor(top / TileSize))
+
+        Dim bottomTile As Integer =
+        CInt(Math.Floor((bottom - 0.01F) / TileSize))
+
+        ' ==========================================
+        ' LÍMITES
+        ' ==========================================
+
+        If leftTile < 0 OrElse
+       rightTile >= GameMap.Width OrElse
+       topTile < 0 OrElse
+       bottomTile >= GameMap.Height Then
 
             Return False
 
         End If
 
+        ' ==========================================
+        ' COMPROBAR TODOS LOS TILES TOCADOS
+        ' ==========================================
 
-        ' ======================================
-        ' COMPROBAR PARED
-        ' ======================================
+        For tileY As Integer = topTile To bottomTile
 
-        If Not Map.IsWalkable(mapX, mapY) Then
+            For tileX As Integer = leftTile To rightTile
 
-            Return False
+                If Not Map.IsWalkable(tileX, tileY) Then
 
-        End If
+                    Return False
 
+                End If
 
-        ' ======================================
-        ' SI LLEGAMOS AQUÍ:
-        ' SE PUEDE MOVER
-        ' ======================================
+            Next
+
+        Next
+
 
         Return True
 
     End Function
 
-
-    ' ==========================================
-    ' OBTENER TILE ACTUAL
-    ' ==========================================
-
+    ' Devuelve el índice de columna de Pac-Man en el mapa:
     Public Function GetMapX() As Integer
-
         Return X \ LogicalUnitsPerTile
-
     End Function
 
-
+    ' Devuelve el índice de fila de Pac-Man en el mapa:
     Public Function GetMapY() As Integer
-
         Return Y \ LogicalUnitsPerTile
-
     End Function
 
-
-    ' ==========================================
-    ' SABER SI ESTÁ EN EL CENTRO DE UN TILE
-    ' ==========================================
-
-    ' Esto será MUY útil para las intersecciones.
-
-    ' Una posición lógica par representa el borde
-    ' de un tile.
-
-    ' Una posición lógica impar representa el centro
-    ' del tile.
-
-    ' Ejemplo:
-
-    ' Tile 13:
-
-    ' X = 26 -> inicio
-    ' X = 27 -> centro
-    ' X = 28 -> inicio del siguiente tile
-
+    ' ¿Está Pac-Man centrado horizontalmente en un tile?
     Public Function IsCenteredX() As Boolean
-
         Return X Mod LogicalUnitsPerTile = 1
-
     End Function
 
-
+    ' ¿Está Pac-Man centrado verticalmente en un tile?
     Public Function IsCenteredY() As Boolean
-
         Return Y Mod LogicalUnitsPerTile = 1
-
     End Function
 
-
+    ' ¿Está Pac-Man centrado en ambos ejes (centro completo de tile)?
     Public Function IsCenteredOnTile() As Boolean
-
         Return IsCenteredX() AndAlso IsCenteredY()
-
     End Function
 
 End Class
