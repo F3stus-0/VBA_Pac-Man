@@ -1,9 +1,11 @@
 ﻿Public Class GameForm
 
     Private ReadOnly Map As New GameMap()
-    Private Pacman As Pacman
+    Private Pacman As PacMan
 
-    Private Const TileSize As Integer = 20
+    Private Const TileSize As Integer = 24
+    Private Const UHeight As Integer = 60
+    Public Score As Integer = 0
 
     Private GameTimer As New Timer()
 
@@ -16,7 +18,7 @@
 
         Me.ClientSize = New Size(
             GameMap.Width * TileSize,
-            GameMap.Height * TileSize
+            GameMap.Height * TileSize + UHeight
         )
 
         Me.Text = "PACMAN-VBA"
@@ -61,15 +63,32 @@
     End Sub
 
     Private Sub GameTimer_Tick(
-        sender As Object,
-        e As EventArgs
-    )
-
+    sender As Object,
+    e As EventArgs
+)
         Pacman.Update()
-        If Map.Has_Pellet(Pacman.X, Pacman.Y) Then
-            Map.PacDotMap(Pacman.X, Pacman.Y) = False
+
+        ' ==========================================
+        ' OBTENER TILE ACTUAL DE PAC-MAN
+        ' ==========================================
+        Dim mapX As Integer = Pacman.GetMapX()
+        Dim mapY As Integer = Pacman.GetMapY()
+
+
+        ' ==========================================
+        ' COMER PELLET
+        ' ==========================================
+        If Map.Has_Pellet(mapX, mapY) Then
+
+            Map.PacDotMap(mapX, mapY) = False
+
+            Score += 100
+
         End If
 
+        ' ==========================================
+        ' REDIBUJAR
+        ' ==========================================
         Me.Invalidate()
 
     End Sub
@@ -82,6 +101,17 @@
         Dim g = e.Graphics
 
         g.Clear(Color.Black)
+        '==================================
+        'Texto
+        '==================================
+
+        Using Font As New Font("Arial", 16, FontStyle.Bold)
+            Using Brush As New SolidBrush(Color.White)
+                g.DrawString(
+                "SCORE: " & Score, Font, Brush, 10, GameMap.Height * TileSize + 10
+                )
+            End Using
+        End Using
 
         ' ==========================================
         ' MAPA
@@ -184,23 +214,28 @@
         ' PAC-MAN
         ' ==========================================
 
+        Dim LogicalSize As Integer = TileSize \ 2
+
         Dim pacmanSize As Integer = TileSize - 4
 
         Dim pacmanX As Integer =
-            Pacman.X * TileSize + 2
+        Pacman.X * LogicalSize -
+        pacmanSize \ 2
 
         Dim pacmanY As Integer =
-            Pacman.Y * TileSize + 2
+        Pacman.Y * LogicalSize -
+        pacmanSize \ 2
+
 
         Using brush As New SolidBrush(Color.Yellow)
 
             g.FillEllipse(
-                brush,
-                pacmanX,
-                pacmanY,
-                pacmanSize,
-                pacmanSize
-            )
+        brush,
+        pacmanX,
+        pacmanY,
+        pacmanSize,
+        pacmanSize
+        )
 
         End Using
 
