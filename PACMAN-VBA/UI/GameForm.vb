@@ -19,7 +19,7 @@
     Private GhostScatter As Boolean = False
     Private Const ScatterDuration As Integer = 7000
     Private Const ChaseDuration As Integer = 20000
-    Private GhostReleaseIndex As Integer = 0
+    Private GhostReleaseIndex As Integer = 1
     Private GhostReleaseTimer As Integer = 0
 
     Private Const GhostReleaseDelay As Integer = 3000
@@ -78,6 +78,7 @@
         For Each ghost As Ghost In Ghosts
             ghost.Update()
         Next
+        CheckGhostCollisions()
 
         GhostReleaseTimer += GameTimer.Interval
 
@@ -87,7 +88,7 @@
 
             If GhostReleaseIndex < Ghosts.Count Then
 
-                Ghosts(GhostReleaseIndex).InGhostHouse = False
+                Ghosts(GhostReleaseIndex).IsLeavingHouse = True
 
                 GhostReleaseIndex += 1
 
@@ -188,6 +189,65 @@
 
 
         Me.Invalidate()
+    End Sub
+
+    Private Sub CheckGhostCollisions()
+
+        For Each ghost As Ghost In Ghosts
+
+            ' Ignore ghosts that are still inside the house
+            ' or are currently leaving it.
+            If ghost.InGhostHouse OrElse ghost.IsLeavingHouse Then
+                Continue For
+            End If
+
+            Dim dx As Integer = Math.Abs(Pacman.X - ghost.X)
+            Dim dy As Integer = Math.Abs(Pacman.Y - ghost.Y)
+
+            ' Collision distance in logical units.
+            If dx <= 1 AndAlso dy <= 1 Then
+
+                ' FRIGHTENED = Pac-Man eats the ghost
+                If TypeOf ghost.StateMachine.CurrentState Is FrighttenedState Then
+
+                    Score += 200
+
+                    ghost.StateMachine.ChangeState(
+                    New EatenState(),
+                    ghost
+                )
+
+                    ' EATEN = ghost cannot hurt Pac-Man
+                ElseIf TypeOf ghost.StateMachine.CurrentState Is EatenState Then
+
+                    Continue For
+
+                    ' NORMAL = ghost kills Pac-Man
+                Else
+
+                    GameOver()
+
+                    Return
+
+                End If
+
+            End If
+
+        Next
+
+    End Sub
+
+    Private Sub GameOver()
+
+        GameTimer.Stop()
+
+        MessageBox.Show(
+        "GAME OVER",
+        "PAC-MAN",
+        MessageBoxButtons.OK,
+        MessageBoxIcon.Information
+    )
+
     End Sub
 
     Private Sub DrawMap(sender As Object, e As PaintEventArgs)

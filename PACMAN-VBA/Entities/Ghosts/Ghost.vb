@@ -56,26 +56,34 @@
 
     Private Sub LeaveGhostHouse()
 
-        ' Move upward toward the ghost house door.
+        ' First move up through the ghost-house door.
 
-        Direction = Direction.Up
-
-        MoveOneStep()
-
-        ' The ghost house door is around row 11.
-        If GetMapY() <= 11 Then
-
-            IsLeavingHouse = False
-            InGhostHouse = False
-
-            Direction = Direction.Left
-
-            StateMachine.ChangeState(
-            New ChaseState(),
-            Me
-        )
-
+        If GetMapX() < 14 Then
+            Direction = Direction.Right
+            MoveOneStep()
         End If
+
+        If GetMapX() > 14 Then
+            Direction = Direction.Left
+            MoveOneStep()
+        End If
+
+        If GetMapY() > 11 Then
+            Direction = Direction.Up
+            MoveOneStep()
+            Return
+        End If
+
+        ' Once outside, move sideways.
+        IsLeavingHouse = False
+        InGhostHouse = False
+
+        Direction = Direction.Left
+
+        StateMachine.ChangeState(
+        New ChaseState(),
+        Me
+    )
 
     End Sub
 
@@ -105,7 +113,7 @@
        GetMapY() = 14 Then
 
             InGhostHouse = True
-            IsLeavingHouse = True
+            IsLeavingHouse = False
 
             Direction = Direction.Up
 
