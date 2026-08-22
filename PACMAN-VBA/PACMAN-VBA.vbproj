@@ -10,13 +10,81 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\blinky.gif" />
+    <None Remove="Assets\blinkydown.gif" />
+    <None Remove="Assets\blinkyleft.gif" />
+    <None Remove="Assets\blinkyright.gif" />
+    <None Remove="Assets\blinkyup.gif" />
+    <None Remove="Assets\carlosdown.gif" />
+    <None Remove="Assets\carlosleft.gif" />
+    <None Remove="Assets\carlosright.gif" />
+    <None Remove="Assets\carlosup.gif" />
+    <None Remove="Assets\eaten.gif" />
+    <None Remove="Assets\frightened.gif" />
+    <None Remove="Assets\frightened2.gif" />
+    <None Remove="Assets\inkydown.gif" />
+    <None Remove="Assets\inkyleft.gif" />
+    <None Remove="Assets\inkyright.gif" />
+    <None Remove="Assets\inkyup.gif" />
     <None Remove="Assets\pacmandown.gif" />
     <None Remove="Assets\pacmanleft.gif" />
     <None Remove="Assets\pacmanright.gif" />
     <None Remove="Assets\pacmanup.gif" />
+    <None Remove="Assets\pinkydown.gif" />
+    <None Remove="Assets\pinkyleft.gif" />
+    <None Remove="Assets\pinkyright.gif" />
+    <None Remove="Assets\pinkyup.gif" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Assets\blinky.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\blinkydown.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\blinkyleft.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\blinkyright.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\blinkyup.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\carlosdown.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\carlosleft.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\carlosright.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\carlosup.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\eaten.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\frightened.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\frightened2.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\inkydown.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\inkyleft.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\inkyright.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\inkyup.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\pacmandown.gif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -27,6 +95,18 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\pacmanup.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\pinkydown.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\pinkyleft.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\pinkyright.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\pinkyup.gif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

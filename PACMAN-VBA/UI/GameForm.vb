@@ -7,6 +7,32 @@ Public Class GameForm
     Private PacmanDown As Image
     Private PacmanLeft As Image
     Private PacmanRight As Image
+    Private BlinkyUp As Image
+    Private BlinkyDown As Image
+    Private BlinkyLeft As Image
+    Private BlinkyRight As Image
+
+    Private PinkyUp As Image
+    Private PinkyDown As Image
+    Private PinkyLeft As Image
+    Private PinkyRight As Image
+
+    Private InkyUp As Image
+    Private InkyDown As Image
+    Private InkyLeft As Image
+    Private InkyRight As Image
+
+    Private CarlosUp As Image
+    Private CarlosDown As Image
+    Private CarlosLeft As Image
+    Private CarlosRight As Image
+
+    Private Frightened As Image
+    Private Frightened2 As Image
+
+    Private Eaten As Image
+
+
 
     Private ReadOnly Map As New GameMap()
     Private Pacman As PacMan
@@ -40,21 +66,149 @@ Public Class GameForm
     Public Sub New()
         InitializeComponent()
 
+        Dim AssetsPath As String =
+    IO.Path.Combine(Application.StartupPath, "Assets")
+
         PacmanUp = Image.FromFile(
-    IO.Path.Combine(Application.StartupPath, "Assets", "pacmanup.gif")
+    IO.Path.Combine(AssetsPath, "pacmanup.gif")
 )
 
         PacmanDown = Image.FromFile(
-    IO.Path.Combine(Application.StartupPath, "Assets", "pacmandown.gif")
+    IO.Path.Combine(AssetsPath, "pacmandown.gif")
 )
 
         PacmanLeft = Image.FromFile(
-    IO.Path.Combine(Application.StartupPath, "Assets", "pacmanleft.gif")
+    IO.Path.Combine(AssetsPath, "pacmanleft.gif")
 )
 
         PacmanRight = Image.FromFile(
-    IO.Path.Combine(Application.StartupPath, "Assets", "pacmanright.gif")
+    IO.Path.Combine(AssetsPath, "pacmanright.gif")
 )
+        ' ==========================================
+        ' BLINKY
+        ' ==========================================
+
+        BlinkyUp = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "BlinkyUp.gif")
+)
+
+        BlinkyDown = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "BlinkyDown.gif")
+)
+
+        BlinkyLeft = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "BlinkyLeft.gif")
+)
+
+        BlinkyRight = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "BlinkyRight.gif")
+)
+
+        ' ==========================================
+        ' PINKY
+        ' ==========================================
+
+        PinkyUp = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "PinkyUp.gif")
+)
+
+        PinkyDown = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "PinkyDown.gif")
+)
+
+        PinkyLeft = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "PinkyLeft.gif")
+)
+
+        PinkyRight = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "PinkyRight.gif")
+)
+
+        ' ==========================================
+        ' INKY
+        ' ==========================================
+
+        InkyUp = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "InkyUp.gif")
+)
+
+        InkyDown = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "InkyDown.gif")
+)
+
+        InkyLeft = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "InkyLeft.gif")
+)
+
+        InkyRight = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "InkyRight.gif")
+)
+
+        ' ==========================================
+        ' CARLOS
+        ' ==========================================
+
+        CarlosUp = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "CarlosUp.gif")
+)
+
+        CarlosDown = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "CarlosDown.gif")
+)
+
+        CarlosLeft = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "CarlosLeft.gif")
+)
+
+        CarlosRight = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "CarlosRight.gif")
+)
+
+        ' ==========================================
+        ' SPECIAL STATES
+        ' ==========================================
+
+        Frightened = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "Frightened.gif")
+)
+
+        Frightened2 = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "Frightened2.gif")
+)
+
+        Eaten = Image.FromFile(
+    IO.Path.Combine(AssetsPath, "Eaten.gif")
+)
+
+        ' Start GIF animations
+        ImageAnimator.Animate(PacmanUp, AddressOf PacmanAnimationChanged)
+        ImageAnimator.Animate(PacmanDown, AddressOf PacmanAnimationChanged)
+        ImageAnimator.Animate(PacmanLeft, AddressOf PacmanAnimationChanged)
+        ImageAnimator.Animate(PacmanRight, AddressOf PacmanAnimationChanged)
+        ImageAnimator.Animate(BlinkyUp, AddressOf GhostAnimationChanged)
+        ImageAnimator.Animate(BlinkyDown, AddressOf GhostAnimationChanged)
+        ImageAnimator.Animate(BlinkyLeft, AddressOf GhostAnimationChanged)
+        ImageAnimator.Animate(BlinkyRight, AddressOf GhostAnimationChanged)
+
+        ImageAnimator.Animate(PinkyUp, AddressOf GhostAnimationChanged)
+        ImageAnimator.Animate(PinkyDown, AddressOf GhostAnimationChanged)
+        ImageAnimator.Animate(PinkyLeft, AddressOf GhostAnimationChanged)
+        ImageAnimator.Animate(PinkyRight, AddressOf GhostAnimationChanged)
+
+        ImageAnimator.Animate(InkyUp, AddressOf GhostAnimationChanged)
+        ImageAnimator.Animate(InkyDown, AddressOf GhostAnimationChanged)
+        ImageAnimator.Animate(InkyLeft, AddressOf GhostAnimationChanged)
+        ImageAnimator.Animate(InkyRight, AddressOf GhostAnimationChanged)
+
+        ImageAnimator.Animate(CarlosUp, AddressOf GhostAnimationChanged)
+        ImageAnimator.Animate(CarlosDown, AddressOf GhostAnimationChanged)
+        ImageAnimator.Animate(CarlosLeft, AddressOf GhostAnimationChanged)
+        ImageAnimator.Animate(CarlosRight, AddressOf GhostAnimationChanged)
+
+        ImageAnimator.Animate(Frightened, AddressOf GhostAnimationChanged)
+        ImageAnimator.Animate(Frightened2, AddressOf GhostAnimationChanged)
+
+        ImageAnimator.Animate(Eaten, AddressOf GhostAnimationChanged)
 
 
 
@@ -95,7 +249,174 @@ Public Class GameForm
         AddHandler Me.Paint, AddressOf DrawMap
     End Sub
 
+    Private Sub PacmanAnimationChanged(sender As Object, e As EventArgs)
 
+        If Me.IsDisposed OrElse Me.Disposing Then
+            Return
+        End If
+
+        Me.BeginInvoke(
+        New MethodInvoker(
+            Sub()
+                Me.Invalidate()
+            End Sub
+        )
+    )
+
+    End Sub
+
+    Private Sub GhostAnimationChanged(sender As Object, e As EventArgs)
+
+        If Me.IsDisposed OrElse Me.Disposing Then
+            Return
+        End If
+
+        Me.BeginInvoke(
+        New MethodInvoker(
+            Sub()
+                Me.Invalidate()
+            End Sub
+        )
+    )
+
+    End Sub
+
+    Private Function GetGhostSprite(ghost As Ghost) As Image
+
+        Dim state = ghost.StateMachine.CurrentState
+
+        ' ==========================================
+        ' EATEN
+        ' ==========================================
+
+        If TypeOf state Is EatenState Then
+            Return Eaten
+        End If
+
+        ' ==========================================
+        ' FRIGHTENED
+        ' ==========================================
+
+        If TypeOf state Is FrighttenedState Then
+
+            ' Alternate between the two frightened
+            ' animations using the game clock.
+
+            If (Environment.TickCount \ 250) Mod 2 = 0 Then
+                Return Frightened
+            Else
+                Return Frightened2
+            End If
+
+        End If
+
+        ' ==========================================
+        ' NORMAL GHOST
+        ' ==========================================
+
+        ' ==========================================
+        ' BLINKY
+        ' ==========================================
+
+        If ghost Is Blinky Then
+
+            Select Case ghost.Direction
+
+                Case Direction.Up
+                    Return BlinkyUp
+
+                Case Direction.Down
+                    Return BlinkyDown
+
+                Case Direction.Left
+                    Return BlinkyLeft
+
+                Case Direction.Right
+                    Return BlinkyRight
+
+            End Select
+
+        End If
+
+
+        ' ==========================================
+        ' PINKY
+        ' ==========================================
+
+        If ghost Is Pinky Then
+
+            Select Case ghost.Direction
+
+                Case Direction.Up
+                    Return PinkyUp
+
+                Case Direction.Down
+                    Return PinkyDown
+
+                Case Direction.Left
+                    Return PinkyLeft
+
+                Case Direction.Right
+                    Return PinkyRight
+
+            End Select
+
+        End If
+
+
+        ' ==========================================
+        ' INKY
+        ' ==========================================
+
+        If ghost Is Inky Then
+
+            Select Case ghost.Direction
+
+                Case Direction.Up
+                    Return InkyUp
+
+                Case Direction.Down
+                    Return InkyDown
+
+                Case Direction.Left
+                    Return InkyLeft
+
+                Case Direction.Right
+                    Return InkyRight
+
+            End Select
+
+        End If
+
+
+        ' ==========================================
+        ' CARLOS
+        ' ==========================================
+
+        If ghost Is Carlos Then
+
+            Select Case ghost.Direction
+
+                Case Direction.Up
+                    Return CarlosUp
+
+                Case Direction.Down
+                    Return CarlosDown
+
+                Case Direction.Left
+                    Return CarlosLeft
+
+                Case Direction.Right
+                    Return CarlosRight
+
+            End Select
+
+        End If
+
+
+        Return Nothing
+
+    End Function
 
     Private Sub GameForm_KeyDown(sender As Object, e As KeyEventArgs)
         If ShowingMenu Then
@@ -566,10 +887,22 @@ Public Class GameForm
 
         End If
 
-        'Fantasmas
+        ' ==========================================
+        ' DIBUJAR FANTASMAS
+        ' ==========================================
+
         For Each ghost As Ghost In Ghosts
 
-            Dim ghostSize As Integer = TileSize - 4
+            Dim ghostSprite As Image = GetGhostSprite(ghost)
+
+            If ghostSprite Is Nothing Then
+                Continue For
+            End If
+
+            ' Advance GIF animation
+            ImageAnimator.UpdateFrames(ghostSprite)
+
+            Dim ghostSize As Integer = TileSize
 
             Dim ghostCenterX As Single =
         ghost.X * (TileSize / 2.0F)
@@ -583,35 +916,13 @@ Public Class GameForm
             Dim ghostY As Single =
         ghostCenterY - ghostSize / 2.0F
 
-            Dim ghostColor As Color = Color.Red
-
-            If TypeOf ghost Is Pinky Then
-                ghostColor = Color.Pink
-            ElseIf TypeOf ghost Is Inky Then
-                ghostColor = Color.Cyan
-            ElseIf TypeOf ghost Is Carlos Then
-                ghostColor = Color.Orange
-            End If
-
-            If TypeOf ghost.StateMachine.CurrentState Is FrighttenedState Then
-                ghostColor = Color.Blue
-            End If
-
-            If TypeOf ghost.StateMachine.CurrentState Is EatenState Then
-                ghostColor = Color.White
-            End If
-
-            Using brush As New SolidBrush(ghostColor)
-
-                g.FillEllipse(
-            brush,
-            ghostX,
-            ghostY,
-            ghostSize,
-            ghostSize
-        )
-
-            End Using
+            g.DrawImage(
+        ghostSprite,
+        ghostX,
+        ghostY,
+        ghostSize,
+        ghostSize
+    )
 
         Next
 
