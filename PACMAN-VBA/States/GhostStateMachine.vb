@@ -6,14 +6,18 @@
         CurrentState = initialState
     End Sub
 
-    Public Sub ChangeState(newState As GhostState, ghost As Ghost)
+    Public Sub ChangeState(
+    newState As GhostState,
+    ghost As Ghost
+)
 
         If newState Is Nothing Then
             Return
         End If
 
-        ' Cambiar de estado permite un giro de 180°
-        ghost.ReverseDirection()
+        If Not ghost.IsLeavingHouse Then
+            ghost.ReverseDirection()
+        End If
 
         CurrentState = newState
 

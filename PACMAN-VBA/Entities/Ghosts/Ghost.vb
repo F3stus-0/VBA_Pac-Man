@@ -6,6 +6,7 @@
     Public Property X As Integer
     Public Property Y As Integer
 
+    Private Const GhostSpeed As Single = 1
     Public Property Direction As Direction
 
     Public ReadOnly Property StateMachine As GhostStateMachine
@@ -40,11 +41,41 @@
 
     Public Sub Update()
 
-        If InGhostHouse Then
+        If InGhostHouse AndAlso Not IsLeavingHouse Then
+            Return
+        End If
+
+        If IsLeavingHouse Then
+            LeaveGhostHouse()
             Return
         End If
 
         StateMachine.Update(Me)
+
+    End Sub
+
+    Private Sub LeaveGhostHouse()
+
+        ' Move upward toward the ghost house door.
+
+        Direction = Direction.Up
+
+        MoveOneStep()
+
+        ' The ghost house door is around row 11.
+        If GetMapY() <= 11 Then
+
+            IsLeavingHouse = False
+            InGhostHouse = False
+
+            Direction = Direction.Left
+
+            StateMachine.ChangeState(
+            New ChaseState(),
+            Me
+        )
+
+        End If
 
     End Sub
 
@@ -70,8 +101,14 @@
 
         MoveTowards(New Point(13, 14))
 
-        If GetMapX() = 13 AndAlso GetMapY() = 14 Then
-            StateMachine.ChangeState(New ChaseState(), Me)
+        If GetMapX() = 13 AndAlso
+       GetMapY() = 14 Then
+
+            InGhostHouse = True
+            IsLeavingHouse = True
+
+            Direction = Direction.Up
+
         End If
 
     End Sub
@@ -197,9 +234,9 @@
     End Sub
 
     Private Sub AddDirectionIfPossible(
-        directions As List(Of Direction),
-        directionToCheck As Direction
-    )
+    directions As List(Of Direction),
+    directionToCheck As Direction
+)
 
         Dim testX As Integer = GetMapX()
         Dim testY As Integer = GetMapY()
@@ -220,27 +257,55 @@
 
         End Select
 
+        If Not IsLeavingHouse AndAlso
+       Not TypeOf StateMachine.CurrentState Is EatenState Then
+
+            If IsGhostHouseTile(testX, testY) Then
+                Return
+            End If
+
+        End If
+
         If Map.IsGhostWalkable(testX, testY) Then
             directions.Add(directionToCheck)
         End If
 
     End Sub
 
+    Private Function IsGhostHouseTile(
+    mapX As Integer,
+    mapY As Integer
+) As Boolean
+
+        ' Ghost house interior.
+        ' Adjust these coordinates if your matrix uses different ones.
+
+        If mapY >= 13 AndAlso mapY <= 15 AndAlso
+       mapX >= 11 AndAlso mapX <= 16 Then
+
+            Return True
+
+        End If
+
+        Return False
+
+    End Function
+
     Private Sub MoveOneStep()
 
         Select Case Direction
 
             Case Direction.Up
-                Y -= 1
+                Y -= GhostSpeed
 
             Case Direction.Down
-                Y += 1
+                Y += GhostSpeed
 
             Case Direction.Left
-                X -= 1
+                X -= GhostSpeed
 
             Case Direction.Right
-                X += 1
+                X += GhostSpeed
 
         End Select
 
