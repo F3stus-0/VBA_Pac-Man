@@ -9,6 +9,9 @@ This is a fan-made Pac-Man game created on Visual Basics!
 
 ## Demo
 
+https://github.com/user-attachments/assets/bffe15f0-9b59-4d5a-a815-ffb4b6e96a9f
+
+
 [Play / Download the latest release](https://github.com/F3stus-0/VBA_Pac-Man/releases/tag/v1.0.0)
 
 ## Quick Start
