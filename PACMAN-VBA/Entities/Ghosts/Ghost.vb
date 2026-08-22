@@ -10,6 +10,9 @@
 
     Public ReadOnly Property StateMachine As GhostStateMachine
 
+    Public Property InGhostHouse As Boolean
+    Public Property IsLeavingHouse As Boolean
+
     Protected ReadOnly Map As GameMap
     Protected ReadOnly Pacman As PacMan
 
@@ -28,11 +31,18 @@
 
         Direction = Direction.Left
 
+        InGhostHouse = True
+        IsLeavingHouse = False
+
         StateMachine = New GhostStateMachine(New ChaseState())
 
     End Sub
 
     Public Sub Update()
+
+        If InGhostHouse Then
+            Return
+        End If
 
         StateMachine.Update(Me)
 
@@ -61,7 +71,7 @@
         MoveTowards(New Point(13, 14))
 
         If GetMapX() = 13 AndAlso GetMapY() = 14 Then
-            StateMachine.ChangeState(New ChaseState())
+            StateMachine.ChangeState(New ChaseState(), Me)
         End If
 
     End Sub
@@ -110,7 +120,7 @@
         AddDirectionIfPossible(possibleDirections, Direction.Right)
 
         If possibleDirections.Count = 0 Then
-            Return OppositeDirection(Direction)
+            Return Direction.None
         End If
 
         Dim bestDirection As Direction = Direction.None
@@ -119,11 +129,8 @@
         For Each dir As Direction In possibleDirections
 
             ' Ghosts normally don't immediately reverse direction.
-            If dir = OppositeDirection(Direction) AndAlso
-               possibleDirections.Count > 1 Then
-
+            If dir = OppositeDirection(Direction) Then
                 Continue For
-
             End If
 
             Dim testX As Integer = currentX
@@ -171,14 +178,15 @@
             AddDirectionIfPossible(possibleDirections, Direction.Down)
             AddDirectionIfPossible(possibleDirections, Direction.Right)
 
+            ' Nunca permitir 180° durante el movimiento normal
+            possibleDirections.Remove(OppositeDirection(Direction))
+
             If possibleDirections.Count > 0 Then
 
                 Dim random As New Random()
 
-                Dim selected As Direction =
-                    possibleDirections(random.Next(possibleDirections.Count))
-
-                Direction = selected
+                Direction =
+                possibleDirections(random.Next(possibleDirections.Count))
 
             End If
 
@@ -276,5 +284,11 @@
                Y Mod LogicalUnitsPerTile = 1
 
     End Function
+
+    Public Sub ReverseDirection()
+
+        Direction = OppositeDirection(Direction)
+
+    End Sub
 
 End Class

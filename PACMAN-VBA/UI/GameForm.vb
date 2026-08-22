@@ -15,6 +15,14 @@
     Private GameTimer As New Timer()
     Private FrightenedTimeRemaining As Single = 0
     Private Const FrightenedDuration As Single = 6.0F
+    Private GhostModeTimer As Integer = 0
+    Private GhostScatter As Boolean = False
+    Private Const ScatterDuration As Integer = 7000
+    Private Const ChaseDuration As Integer = 20000
+    Private GhostReleaseIndex As Integer = 0
+    Private GhostReleaseTimer As Integer = 0
+
+    Private Const GhostReleaseDelay As Integer = 3000
 
     Public Sub New()
         InitializeComponent()
@@ -35,10 +43,16 @@
         Inky = New Inky(Map, Pacman)
         Carlos = New Carlos(Map, Pacman)
 
+
         Ghosts.Add(Blinky)
         Ghosts.Add(Pinky)
         Ghosts.Add(Inky)
         Ghosts.Add(Carlos)
+        Blinky.InGhostHouse = False
+        Pinky.InGhostHouse = True
+        Inky.InGhostHouse = True
+        Carlos.InGhostHouse = True
+
 
         ' Timer de juego
         GameTimer.Interval = 80
@@ -65,6 +79,22 @@
             ghost.Update()
         Next
 
+        GhostReleaseTimer += GameTimer.Interval
+
+        If GhostReleaseTimer >= GhostReleaseDelay Then
+
+            GhostReleaseTimer = 0
+
+            If GhostReleaseIndex < Ghosts.Count Then
+
+                Ghosts(GhostReleaseIndex).InGhostHouse = False
+
+                GhostReleaseIndex += 1
+
+            End If
+
+        End If
+
         Dim mapX As Integer = Pacman.GetMapX()
         Dim mapY As Integer = Pacman.GetMapY()
 
@@ -76,7 +106,7 @@
             For Each ghost As Ghost In Ghosts
 
                 If Not TypeOf ghost.StateMachine.CurrentState Is EatenState Then
-                    ghost.StateMachine.ChangeState(New FrighttenedState())
+                    ghost.StateMachine.ChangeState(New FrighttenedState(), ghost)
                 End If
 
             Next
@@ -96,7 +126,7 @@
                 For Each ghost As Ghost In Ghosts
 
                     If TypeOf ghost.StateMachine.CurrentState Is FrighttenedState Then
-                        ghost.StateMachine.ChangeState(New ChaseState())
+                        ghost.StateMachine.ChangeState(New ChaseState(), ghost)
                     End If
 
                 Next
@@ -104,6 +134,58 @@
             End If
 
         End If
+
+        GhostModeTimer += GameTimer.Interval
+
+        If GhostScatter Then
+
+            If GhostModeTimer >= ScatterDuration Then
+
+                GhostModeTimer = 0
+                GhostScatter = False
+
+                For Each ghost As Ghost In Ghosts
+
+                    If Not TypeOf ghost.StateMachine.CurrentState Is FrighttenedState AndAlso
+               Not TypeOf ghost.StateMachine.CurrentState Is EatenState Then
+
+                        ghost.StateMachine.ChangeState(
+                    New ChaseState(),
+                    ghost
+                )
+
+                    End If
+
+                Next
+
+            End If
+
+        Else
+
+            If GhostModeTimer >= ChaseDuration Then
+
+                GhostModeTimer = 0
+                GhostScatter = True
+
+                For Each ghost As Ghost In Ghosts
+
+                    If Not TypeOf ghost.StateMachine.CurrentState Is FrighttenedState AndAlso
+               Not TypeOf ghost.StateMachine.CurrentState Is EatenState Then
+
+                        ghost.StateMachine.ChangeState(
+                    New ScattterState(),
+                    ghost
+                )
+
+                    End If
+
+                Next
+
+            End If
+
+        End If
+
+
 
         Me.Invalidate()
     End Sub
