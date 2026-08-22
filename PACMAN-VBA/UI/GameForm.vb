@@ -1,4 +1,12 @@
-﻿Public Class GameForm
+﻿Imports System.Drawing
+Imports System.Drawing.Imaging
+Public Class GameForm
+
+    'Animations
+    Private PacmanUp As Image
+    Private PacmanDown As Image
+    Private PacmanLeft As Image
+    Private PacmanRight As Image
 
     Private ReadOnly Map As New GameMap()
     Private Pacman As PacMan
@@ -31,6 +39,24 @@
 
     Public Sub New()
         InitializeComponent()
+
+        PacmanUp = Image.FromFile(
+    IO.Path.Combine(Application.StartupPath, "Assets", "pacmanup.gif")
+)
+
+        PacmanDown = Image.FromFile(
+    IO.Path.Combine(Application.StartupPath, "Assets", "pacmandown.gif")
+)
+
+        PacmanLeft = Image.FromFile(
+    IO.Path.Combine(Application.StartupPath, "Assets", "pacmanleft.gif")
+)
+
+        PacmanRight = Image.FromFile(
+    IO.Path.Combine(Application.StartupPath, "Assets", "pacmanright.gif")
+)
+
+
 
         Me.DoubleBuffered = True
         Me.KeyPreview = True
@@ -68,6 +94,8 @@
         AddHandler Me.KeyDown, AddressOf GameForm_KeyDown
         AddHandler Me.Paint, AddressOf DrawMap
     End Sub
+
+
 
     Private Sub GameForm_KeyDown(sender As Object, e As KeyEventArgs)
         If ShowingMenu Then
@@ -480,34 +508,63 @@
             Next
         Next
 
-        ' Dibujo de Pac-Man en el centro de su tile actual
+        ' ==========================================
+        ' DIBUJAR PAC-MAN
+        ' ==========================================
+
         Dim LogicalSize As Single = TileSize / 2.0F
 
-        Dim pacmanSize As Integer = TileSize - 4
+        Dim pacmanSize As Integer = TileSize
 
         Dim pacmanCenterX As Single =
-        Pacman.X * LogicalSize
+    Pacman.X * LogicalSize
 
         Dim pacmanCenterY As Single =
-        Pacman.Y * LogicalSize
+    Pacman.Y * LogicalSize
 
         Dim pacmanX As Single =
-        pacmanCenterX - pacmanSize / 2.0F
+    pacmanCenterX - pacmanSize / 2.0F
 
         Dim pacmanY As Single =
-        pacmanCenterY - pacmanSize / 2.0F
+    pacmanCenterY - pacmanSize / 2.0F
 
-        Using brush As New SolidBrush(Color.Yellow)
+        Dim pacmanSprite As Image = Nothing
 
-            g.FillEllipse(
-        brush,
-        pacmanX,
-        pacmanY,
-        pacmanSize,
-        pacmanSize
-        )
+        Select Case Pacman.Direction
 
-        End Using
+            Case Direction.Up
+                pacmanSprite = PacmanUp
+
+            Case Direction.Down
+                pacmanSprite = PacmanDown
+
+            Case Direction.Left
+                pacmanSprite = PacmanLeft
+
+            Case Direction.Right
+                pacmanSprite = PacmanRight
+
+            Case Else
+                pacmanSprite = PacmanRight
+
+        End Select
+
+        If pacmanSprite IsNot Nothing Then
+            If pacmanSprite IsNot Nothing Then
+
+                ImageAnimator.UpdateFrames(pacmanSprite)
+
+                g.DrawImage(
+            pacmanSprite,
+            pacmanX,
+            pacmanY,
+            pacmanSize,
+            pacmanSize
+            )
+
+            End If
+
+        End If
 
         'Fantasmas
         For Each ghost As Ghost In Ghosts

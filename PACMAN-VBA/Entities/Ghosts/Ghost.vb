@@ -305,6 +305,39 @@
 
     Private Sub MoveOneStep()
 
+        ' ==========================================
+        ' WARP TUNNEL
+        ' ==========================================
+        '
+        ' El túnel está en la fila 14 del mapa.
+        ' En coordenadas lógicas:
+        ' Y = 29
+        '
+        ' Extremos:
+        ' X = 1  -> izquierda
+        ' X = 55 -> derecha
+        '
+
+        If Y = 29 Then
+
+            If Direction = Direction.Left AndAlso X <= 1 Then
+
+                X = 55
+                Return
+
+            ElseIf Direction = Direction.Right AndAlso X >= 55 Then
+
+                X = 1
+                Return
+
+            End If
+
+        End If
+
+        ' ==========================================
+        ' MOVIMIENTO NORMAL
+        ' ==========================================
+
         Select Case Direction
 
             Case Direction.Up

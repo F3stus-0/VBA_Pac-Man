@@ -27,26 +27,67 @@
     End Sub
 
     Public Sub Update()
-        ' Intentar cambiar dirección en centro de tile:
+
+        ' Intentar cambiar dirección en centro de tile
         If IsCenteredOnTile() Then
+
             If CanMove(NextDirection) Then
                 Direction = NextDirection
             End If
+
         End If
 
-        ' Avanzar en la dirección actual si es posible:
+        ' ==========================================
+        ' TUNNEL WARP
+        ' ==========================================
+        '
+        ' El túnel está en la fila 14.
+        ' X = 1  -> extremo izquierdo
+        ' X = 55 -> extremo derecho
+        '
+        ' 2 unidades lógicas = 1 tile.
+        '
+
+        If Y = 29 Then
+
+            If Direction = Direction.Left AndAlso X = 1 Then
+
+                X = 55
+                Return
+
+            ElseIf Direction = Direction.Right AndAlso X = 55 Then
+
+                X = 1
+                Return
+
+            End If
+
+        End If
+
+        ' ==========================================
+        ' MOVIMIENTO NORMAL
+        ' ==========================================
+
         If CanMove(Direction) Then
+
             Select Case Direction
+
                 Case Direction.Up
                     Y -= 1
+
                 Case Direction.Down
                     Y += 1
+
                 Case Direction.Left
                     X -= 1
+
                 Case Direction.Right
                     X += 1
+
             End Select
+
         End If
+
     End Sub
 
     Private Function CanMove(
