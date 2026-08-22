@@ -119,6 +119,10 @@
 
         End If
 
+        If InGhostHouse Then
+            IsLeavingHouse = True
+        End If
+
     End Sub
 
     Protected Overridable Function GetChaseTarget() As Point

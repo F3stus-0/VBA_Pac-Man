@@ -12,8 +12,12 @@
     Private Const TileSize As Integer = 24
     Private Const UHeight As Integer = 60
     Public Score As Integer = 0
+    Private Const StartingLives As Integer = 3
+    Private Lives As Integer = StartingLives
+
     Private GameTimer As New Timer()
     Private IsGameOver As Boolean = False
+    Private ShowingMenu As Boolean = True
     Private FrightenedTimeRemaining As Single = 0
     Private Const FrightenedDuration As Single = 6.0F
     Private GhostModeTimer As Integer = 0
@@ -41,7 +45,7 @@
         Pacman = New PacMan(Map)
         Blinky = New Blinky(Map, Pacman)
         Pinky = New Pinky(Map, Pacman)
-        Inky = New Inky(Map, Pacman)
+        Inky = New Inky(Map, Pacman, Blinky)
         Carlos = New Carlos(Map, Pacman)
 
 
@@ -66,6 +70,14 @@
     End Sub
 
     Private Sub GameForm_KeyDown(sender As Object, e As KeyEventArgs)
+        If ShowingMenu Then
+            If e.KeyCode = Keys.Enter Then
+                RestartGame()
+                ShowingMenu = False
+            End If
+            Return
+        End If
+
         If IsGameOver Then
             If e.KeyCode = Keys.Enter Then
                 RestartGame()
@@ -82,6 +94,11 @@
     End Sub
 
     Private Sub GameTimer_Tick(sender As Object, e As EventArgs)
+        If ShowingMenu OrElse IsGameOver Then
+            Me.Invalidate()
+            Return
+        End If
+
         Pacman.Update()
         For Each ghost As Ghost In Ghosts
             ghost.Update()
@@ -201,8 +218,14 @@
 
     Private Sub CheckGhostCollisions()
 
-        Dim pacTileX As Integer = Pacman.GetMapX()
-        Dim pacTileY As Integer = Pacman.GetMapY()
+        Dim pacPixelX As Single = Pacman.X * (TileSize / 2.0F)
+        Dim pacPixelY As Single = Pacman.Y * (TileSize / 2.0F)
+
+        ' Radio de colisión ~ mitad del tamaño del sprite de cada uno.
+        ' pacmanSize/ghostSize = TileSize - 4, así que su suma de radios
+        ' es aprox TileSize - 4 (cuando los dos círculos se tocan).
+        Const CollisionDistance As Single = TileSize - 4
+        Const CollisionDistanceSquared As Single = CollisionDistance * CollisionDistance
 
         For Each ghost As Ghost In Ghosts
 
@@ -210,7 +233,13 @@
                 Continue For
             End If
 
-            If ghost.GetMapX() <> pacTileX OrElse ghost.GetMapY() <> pacTileY Then
+            Dim ghostPixelX As Single = ghost.X * (TileSize / 2.0F)
+            Dim ghostPixelY As Single = ghost.Y * (TileSize / 2.0F)
+
+            Dim dx As Single = pacPixelX - ghostPixelX
+            Dim dy As Single = pacPixelY - ghostPixelY
+
+            If (dx * dx + dy * dy) > CollisionDistanceSquared Then
                 Continue For
             End If
 
@@ -225,7 +254,7 @@
 
             Else
 
-                GameOver()
+                PacmanDied()
                 Return
 
             End If
@@ -234,33 +263,41 @@
 
     End Sub
 
-    'Private Sub GameOver()
+    Private Sub PacmanDied()
 
-    '   GameTimer.Stop()
-
-    '  MessageBox.Show(
-    ' "GAME OVER",
-    '"PAC-MAN",
-    'MessageBoxButtons.OK,
-    'MessageBoxIcon.Information
-    ')
-
-    'End Sub
-
-    Private Sub GameOver()
         GameTimer.Stop()
-        IsGameOver = True
-        Me.Invalidate()
+        Lives -= 1
+
+        If Lives <= 0 Then
+
+            IsGameOver = True
+            Me.Invalidate()
+
+        Else
+
+            ResetPositions()
+            Me.Invalidate()
+
+            ' Pequeña pausa antes de continuar, como en el Pac-Man clásico
+            Dim resumeTimer As New Timer()
+            resumeTimer.Interval = 1200
+            AddHandler resumeTimer.Tick, Sub(s, e)
+                                             resumeTimer.Stop()
+                                             resumeTimer.Dispose()
+                                             GameTimer.Start()
+                                         End Sub
+            resumeTimer.Start()
+
+        End If
+
     End Sub
 
-    Private Sub RestartGame()
-
-        Map.Reset()
+    Private Sub ResetPositions()
 
         Pacman = New PacMan(Map)
         Blinky = New Blinky(Map, Pacman)
         Pinky = New Pinky(Map, Pacman)
-        Inky = New Inky(Map, Pacman)
+        Inky = New Inky(Map, Pacman, Blinky)
         Carlos = New Carlos(Map, Pacman)
 
         Ghosts.Clear()
@@ -274,12 +311,21 @@
         Inky.InGhostHouse = True
         Carlos.InGhostHouse = True
 
-        Score = 0
         FrightenedTimeRemaining = 0
         GhostModeTimer = 0
         GhostScatter = False
         GhostReleaseIndex = 1
         GhostReleaseTimer = 0
+
+    End Sub
+
+    Private Sub RestartGame()
+
+        Map.Reset()
+        ResetPositions()
+
+        Score = 0
+        Lives = StartingLives
         IsGameOver = False
 
         GameTimer.Start()
@@ -287,9 +333,101 @@
 
     End Sub
 
+    Private Sub DrawMainMenu(g As Graphics)
+
+        Dim width As Integer = Me.ClientSize.Width
+        Dim height As Integer = Me.ClientSize.Height
+
+        ' Fondo con degradado tipo arcade
+        Using bg As New System.Drawing.Drawing2D.LinearGradientBrush(
+        New Rectangle(0, 0, width, height),
+        Color.FromArgb(10, 10, 40),
+        Color.Black,
+        System.Drawing.Drawing2D.LinearGradientMode.Vertical)
+            g.FillRectangle(bg, 0, 0, width, height)
+        End Using
+
+        ' Titulo
+        Using titleFont As New Font("Arial", 42, FontStyle.Bold)
+            Dim title = "PAC-MAN"
+            Dim size = g.MeasureString(title, titleFont)
+            Dim titleX As Single = (width - size.Width) / 2
+            Dim titleY As Single = height / 5
+
+            Using shadowBrush As New SolidBrush(Color.FromArgb(120, 0, 0, 0))
+                g.DrawString(title, titleFont, shadowBrush, titleX + 4, titleY + 4)
+            End Using
+
+            Using titleBrush As New SolidBrush(Color.Yellow)
+                g.DrawString(title, titleFont, titleBrush, titleX, titleY)
+            End Using
+        End Using
+
+        ' Pac-Man animado (boca abriendo y cerrando)
+        Dim pacRadius As Integer = 30
+        Dim pacCenterX As Integer = width / 2 - 120
+        Dim pacCenterY As Integer = height / 2
+
+        Dim mouthOpen As Single = 30 + 20 * CSng(Math.Sin(Environment.TickCount / 150.0))
+
+        Using pacBrush As New SolidBrush(Color.Yellow)
+            g.FillPie(
+            pacBrush,
+            pacCenterX - pacRadius,
+            pacCenterY - pacRadius,
+            pacRadius * 2,
+            pacRadius * 2,
+            mouthOpen / 2,
+            360 - mouthOpen
+        )
+        End Using
+
+        ' Fantasmitas decorativos
+        Dim ghostColors As Color() = {Color.Red, Color.Pink, Color.Cyan, Color.Orange}
+
+        For i = 0 To ghostColors.Length - 1
+            Dim gx As Integer = pacCenterX + 70 + i * 55
+            Dim gy As Integer = pacCenterY
+
+            Using ghostBrush As New SolidBrush(ghostColors(i))
+                g.FillEllipse(ghostBrush, gx - 20, gy - 20, 40, 40)
+            End Using
+        Next
+
+        ' Texto parpadeante
+        If (Environment.TickCount \ 500) Mod 2 = 0 Then
+            Using promptFont As New Font("Arial", 20, FontStyle.Bold)
+                Dim prompt = "PRESIONA ENTER PARA JUGAR"
+                Dim size = g.MeasureString(prompt, promptFont)
+                Using promptBrush As New SolidBrush(Color.White)
+                    g.DrawString(prompt, promptFont, promptBrush,
+                    CSng((width - size.Width) / 2),
+                    CSng(height * 2 / 3))
+                End Using
+            End Using
+        End If
+
+        ' Controles
+        Using controlsFont As New Font("Arial", 12)
+            Dim controls = "Flechas para moverte  -  Come los puntos y evita a los fantasmas"
+            Dim size = g.MeasureString(controls, controlsFont)
+            Using controlsBrush As New SolidBrush(Color.Gray)
+                g.DrawString(controls, controlsFont, controlsBrush,
+                CSng((width - size.Width) / 2),
+                CSng(height - 40))
+            End Using
+        End Using
+
+    End Sub
+
     Private Sub DrawMap(sender As Object, e As PaintEventArgs)
         Dim g = e.Graphics
         g.Clear(Color.Black)
+
+        If ShowingMenu Then
+            DrawMainMenu(g)
+            Return
+        End If
 
         ' Dibujo del laberinto (paredes, caminos, pellets)
         For y = 0 To GameMap.Height - 1
@@ -420,11 +558,12 @@
 
         Next
 
-        ' (Opcional) Dibujo de UI: puntuación, etc.
         Using font As New Font("Arial", 16, FontStyle.Bold)
             Using brush As New SolidBrush(Color.White)
                 g.DrawString("SCORE: " & Score, font, brush,
-                             10, GameMap.Height * TileSize + 10)
+                     10, GameMap.Height * TileSize + 10)
+                g.DrawString("VIDAS: " & Lives, font, brush,
+                     220, GameMap.Height * TileSize + 10)
             End Using
         End Using
 
@@ -439,8 +578,8 @@
                 Dim size = g.MeasureString(text, bigFont)
                 Using brush As New SolidBrush(Color.Red)
                     g.DrawString(text, bigFont, brush,
-                        (Me.ClientSize.Width - size.Width) / 2,
-                        (Me.ClientSize.Height - size.Height) / 2 - 20)
+                (Me.ClientSize.Width - size.Width) / 2,
+                (Me.ClientSize.Height - size.Height) / 2 - 20)
                 End Using
             End Using
 
@@ -449,12 +588,14 @@
                 Dim size2 = g.MeasureString(text2, smallFont)
                 Using brush As New SolidBrush(Color.White)
                     g.DrawString(text2, smallFont, brush,
-                        (Me.ClientSize.Width - size2.Width) / 2,
-                        (Me.ClientSize.Height - size2.Height) / 2 + 20)
+                (Me.ClientSize.Width - size2.Width) / 2,
+                (Me.ClientSize.Height - size2.Height) / 2 + 20)
                 End Using
             End Using
 
         End If
+
+
 
     End Sub
 
