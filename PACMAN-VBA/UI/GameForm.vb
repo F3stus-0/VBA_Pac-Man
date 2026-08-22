@@ -2,6 +2,12 @@
 
     Private ReadOnly Map As New GameMap()
     Private Pacman As PacMan
+    Private Blinky As Blinky
+    Private Pinky As Pinky
+    Private Inky As Inky
+    Private Carlos As Carlos
+
+    Private ReadOnly Ghosts As New List(Of Ghost)
 
     Private Const TileSize As Integer = 24
     Private Const UHeight As Integer = 60
@@ -24,6 +30,15 @@
         Me.Text = "PACMAN-VBA"
 
         Pacman = New PacMan(Map)
+        Blinky = New Blinky(Map, Pacman)
+        Pinky = New Pinky(Map, Pacman)
+        Inky = New Inky(Map, Pacman)
+        Carlos = New Carlos(Map, Pacman)
+
+        Ghosts.Add(Blinky)
+        Ghosts.Add(Pinky)
+        Ghosts.Add(Inky)
+        Ghosts.Add(Carlos)
 
         ' Timer de juego
         GameTimer.Interval = 80
@@ -46,6 +61,9 @@
 
     Private Sub GameTimer_Tick(sender As Object, e As EventArgs)
         Pacman.Update()
+        For Each ghost As Ghost In Ghosts
+            ghost.Update()
+        Next
 
         Dim mapX As Integer = Pacman.GetMapX()
         Dim mapY As Integer = Pacman.GetMapY()
@@ -54,15 +72,37 @@
             Map.PowerPelletMap(mapX, mapY) = False
             Score += 50
             FrightenedTimeRemaining = FrightenedDuration
-            ' TODO once ghosts exist: tell each ghost.StateMachine.ChangeState(New FrighttenedState())
+
+            For Each ghost As Ghost In Ghosts
+
+                If Not TypeOf ghost.StateMachine.CurrentState Is EatenState Then
+                    ghost.StateMachine.ChangeState(New FrighttenedState())
+                End If
+
+            Next
         ElseIf Map.Has_Pellet(mapX, mapY) Then
             Map.PacDotMap(mapX, mapY) = False
             Score += 10
         End If
 
         If FrightenedTimeRemaining > 0 Then
+
             FrightenedTimeRemaining -= GameTimer.Interval / 1000.0F
-            If FrightenedTimeRemaining < 0 Then FrightenedTimeRemaining = 0
+
+            If FrightenedTimeRemaining <= 0 Then
+
+                FrightenedTimeRemaining = 0
+
+                For Each ghost As Ghost In Ghosts
+
+                    If TypeOf ghost.StateMachine.CurrentState Is FrighttenedState Then
+                        ghost.StateMachine.ChangeState(New ChaseState())
+                    End If
+
+                Next
+
+            End If
+
         End If
 
         Me.Invalidate()
@@ -151,6 +191,55 @@
         )
 
         End Using
+
+        'Fantasmas
+        For Each ghost As Ghost In Ghosts
+
+            Dim ghostSize As Integer = TileSize - 4
+
+            Dim ghostCenterX As Single =
+        ghost.X * (TileSize / 2.0F)
+
+            Dim ghostCenterY As Single =
+        ghost.Y * (TileSize / 2.0F)
+
+            Dim ghostX As Single =
+        ghostCenterX - ghostSize / 2.0F
+
+            Dim ghostY As Single =
+        ghostCenterY - ghostSize / 2.0F
+
+            Dim ghostColor As Color = Color.Red
+
+            If TypeOf ghost Is Pinky Then
+                ghostColor = Color.Pink
+            ElseIf TypeOf ghost Is Inky Then
+                ghostColor = Color.Cyan
+            ElseIf TypeOf ghost Is Carlos Then
+                ghostColor = Color.Orange
+            End If
+
+            If TypeOf ghost.StateMachine.CurrentState Is FrighttenedState Then
+                ghostColor = Color.Blue
+            End If
+
+            If TypeOf ghost.StateMachine.CurrentState Is EatenState Then
+                ghostColor = Color.White
+            End If
+
+            Using brush As New SolidBrush(ghostColor)
+
+                g.FillEllipse(
+            brush,
+            ghostX,
+            ghostY,
+            ghostSize,
+            ghostSize
+        )
+
+            End Using
+
+        Next
 
         ' (Opcional) Dibujo de UI: puntuación, etc.
         Using font As New Font("Arial", 16, FontStyle.Bold)

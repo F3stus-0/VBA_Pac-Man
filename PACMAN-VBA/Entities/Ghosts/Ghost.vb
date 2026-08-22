@@ -1,10 +1,34 @@
 ﻿Public Class Ghost
 
-    Public StateMachine As GhostStateMachine
+    Private Const LogicalUnitsPerTile As Integer = 2
+    Private Const TileSize As Integer = 24
 
-    Public Sub New()
+    Public Property X As Integer
+    Public Property Y As Integer
 
-        StateMachine = New GhostStateMachine()
+    Public Property Direction As Direction
+
+    Public ReadOnly Property StateMachine As GhostStateMachine
+
+    Protected ReadOnly Map As GameMap
+    Protected ReadOnly Pacman As PacMan
+
+    Public Sub New(
+        gameMap As GameMap,
+        pacman As PacMan,
+        startX As Integer,
+        startY As Integer
+    )
+
+        Map = gameMap
+        Me.Pacman = pacman
+
+        X = startX * LogicalUnitsPerTile + 1
+        Y = startY * LogicalUnitsPerTile + 1
+
+        Direction = Direction.Left
+
+        StateMachine = New GhostStateMachine(New ChaseState())
 
     End Sub
 
@@ -16,18 +40,241 @@
 
     Public Overridable Sub Chase()
 
+        MoveTowards(GetChaseTarget())
+
     End Sub
 
     Public Overridable Sub Scatter()
+
+        MoveTowards(GetScatterTarget())
 
     End Sub
 
     Public Overridable Sub Frightened()
 
+        MoveRandomly()
+
     End Sub
 
     Public Overridable Sub Eaten()
 
+        MoveTowards(New Point(13, 14))
+
+        If GetMapX() = 13 AndAlso GetMapY() = 14 Then
+            StateMachine.ChangeState(New ChaseState())
+        End If
+
     End Sub
+
+    Protected Overridable Function GetChaseTarget() As Point
+
+        Return New Point(
+            Pacman.GetMapX(),
+            Pacman.GetMapY()
+        )
+
+    End Function
+
+    Protected Overridable Function GetScatterTarget() As Point
+
+        Return New Point(26, 0)
+
+    End Function
+
+    Private Sub MoveTowards(target As Point)
+
+        If IsCenteredOnTile() Then
+
+            Dim bestDirection As Direction = ChooseDirection(target)
+
+            If bestDirection <> Direction.None Then
+                Direction = bestDirection
+            End If
+
+        End If
+
+        MoveOneStep()
+
+    End Sub
+
+    Private Function ChooseDirection(target As Point) As Direction
+
+        Dim currentX As Integer = GetMapX()
+        Dim currentY As Integer = GetMapY()
+
+        Dim possibleDirections As New List(Of Direction)
+
+        AddDirectionIfPossible(possibleDirections, Direction.Up)
+        AddDirectionIfPossible(possibleDirections, Direction.Left)
+        AddDirectionIfPossible(possibleDirections, Direction.Down)
+        AddDirectionIfPossible(possibleDirections, Direction.Right)
+
+        If possibleDirections.Count = 0 Then
+            Return OppositeDirection(Direction)
+        End If
+
+        Dim bestDirection As Direction = Direction.None
+        Dim bestDistance As Double = Double.MaxValue
+
+        For Each dir As Direction In possibleDirections
+
+            ' Ghosts normally don't immediately reverse direction.
+            If dir = OppositeDirection(Direction) AndAlso
+               possibleDirections.Count > 1 Then
+
+                Continue For
+
+            End If
+
+            Dim testX As Integer = currentX
+            Dim testY As Integer = currentY
+
+            Select Case dir
+
+                Case Direction.Up
+                    testY -= 1
+
+                Case Direction.Down
+                    testY += 1
+
+                Case Direction.Left
+                    testX -= 1
+
+                Case Direction.Right
+                    testX += 1
+
+            End Select
+
+            Dim distance As Double =
+                Math.Pow(testX - target.X, 2) +
+                Math.Pow(testY - target.Y, 2)
+
+            If distance < bestDistance Then
+                bestDistance = distance
+                bestDirection = dir
+            End If
+
+        Next
+
+        Return bestDirection
+
+    End Function
+
+    Private Sub MoveRandomly()
+
+        If IsCenteredOnTile() Then
+
+            Dim possibleDirections As New List(Of Direction)
+
+            AddDirectionIfPossible(possibleDirections, Direction.Up)
+            AddDirectionIfPossible(possibleDirections, Direction.Left)
+            AddDirectionIfPossible(possibleDirections, Direction.Down)
+            AddDirectionIfPossible(possibleDirections, Direction.Right)
+
+            If possibleDirections.Count > 0 Then
+
+                Dim random As New Random()
+
+                Dim selected As Direction =
+                    possibleDirections(random.Next(possibleDirections.Count))
+
+                Direction = selected
+
+            End If
+
+        End If
+
+        MoveOneStep()
+
+    End Sub
+
+    Private Sub AddDirectionIfPossible(
+        directions As List(Of Direction),
+        directionToCheck As Direction
+    )
+
+        Dim testX As Integer = GetMapX()
+        Dim testY As Integer = GetMapY()
+
+        Select Case directionToCheck
+
+            Case Direction.Up
+                testY -= 1
+
+            Case Direction.Down
+                testY += 1
+
+            Case Direction.Left
+                testX -= 1
+
+            Case Direction.Right
+                testX += 1
+
+        End Select
+
+        If Map.IsGhostWalkable(testX, testY) Then
+            directions.Add(directionToCheck)
+        End If
+
+    End Sub
+
+    Private Sub MoveOneStep()
+
+        Select Case Direction
+
+            Case Direction.Up
+                Y -= 1
+
+            Case Direction.Down
+                Y += 1
+
+            Case Direction.Left
+                X -= 1
+
+            Case Direction.Right
+                X += 1
+
+        End Select
+
+    End Sub
+
+    Private Function OppositeDirection(
+        directionToCheck As Direction
+    ) As Direction
+
+        Select Case directionToCheck
+
+            Case Direction.Up
+                Return Direction.Down
+
+            Case Direction.Down
+                Return Direction.Up
+
+            Case Direction.Left
+                Return Direction.Right
+
+            Case Direction.Right
+                Return Direction.Left
+
+        End Select
+
+        Return Direction.None
+
+    End Function
+
+    Public Function GetMapX() As Integer
+        Return X \ LogicalUnitsPerTile
+    End Function
+
+    Public Function GetMapY() As Integer
+        Return Y \ LogicalUnitsPerTile
+    End Function
+
+    Public Function IsCenteredOnTile() As Boolean
+
+        Return X Mod LogicalUnitsPerTile = 1 AndAlso
+               Y Mod LogicalUnitsPerTile = 1
+
+    End Function
 
 End Class

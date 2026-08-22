@@ -1,4 +1,4 @@
-﻿Public Class Blinky
+﻿Public Class Inky
 
     Inherits Ghost
 
@@ -10,24 +10,15 @@
         MyBase.New(
             gameMap,
             pacman,
-            13,
-            11
+            11,
+            14
         )
 
     End Sub
 
-    Protected Overrides Function GetChaseTarget() As Point
-
-        Return New Point(
-            Pacman.GetMapX(),
-            Pacman.GetMapY()
-        )
-
-    End Function
-
     Protected Overrides Function GetScatterTarget() As Point
 
-        Return New Point(26, 0)
+        Return New Point(26, 30)
 
     End Function
 
