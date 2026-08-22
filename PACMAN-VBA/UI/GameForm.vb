@@ -13,6 +13,7 @@
     Private Const UHeight As Integer = 60
     Public Score As Integer = 0
     Private GameTimer As New Timer()
+    Private IsGameOver As Boolean = False
     Private FrightenedTimeRemaining As Single = 0
     Private Const FrightenedDuration As Single = 6.0F
     Private GhostModeTimer As Integer = 0
@@ -65,6 +66,13 @@
     End Sub
 
     Private Sub GameForm_KeyDown(sender As Object, e As KeyEventArgs)
+        If IsGameOver Then
+            If e.KeyCode = Keys.Enter Then
+                RestartGame()
+            End If
+            Return
+        End If
+
         Select Case e.KeyCode
             Case Keys.Up : Pacman.SetDirection(Direction.Up)
             Case Keys.Down : Pacman.SetDirection(Direction.Down)
@@ -193,43 +201,32 @@
 
     Private Sub CheckGhostCollisions()
 
+        Dim pacTileX As Integer = Pacman.GetMapX()
+        Dim pacTileY As Integer = Pacman.GetMapY()
+
         For Each ghost As Ghost In Ghosts
 
-            ' Ignore ghosts that are still inside the house
-            ' or are currently leaving it.
             If ghost.InGhostHouse OrElse ghost.IsLeavingHouse Then
                 Continue For
             End If
 
-            Dim dx As Integer = Math.Abs(Pacman.X - ghost.X)
-            Dim dy As Integer = Math.Abs(Pacman.Y - ghost.Y)
+            If ghost.GetMapX() <> pacTileX OrElse ghost.GetMapY() <> pacTileY Then
+                Continue For
+            End If
 
-            ' Collision distance in logical units.
-            If dx <= 1 AndAlso dy <= 1 Then
+            If TypeOf ghost.StateMachine.CurrentState Is FrighttenedState Then
 
-                ' FRIGHTENED = Pac-Man eats the ghost
-                If TypeOf ghost.StateMachine.CurrentState Is FrighttenedState Then
+                Score += 200
+                ghost.StateMachine.ChangeState(New EatenState(), ghost)
 
-                    Score += 200
+            ElseIf TypeOf ghost.StateMachine.CurrentState Is EatenState Then
 
-                    ghost.StateMachine.ChangeState(
-                    New EatenState(),
-                    ghost
-                )
+                Continue For
 
-                    ' EATEN = ghost cannot hurt Pac-Man
-                ElseIf TypeOf ghost.StateMachine.CurrentState Is EatenState Then
+            Else
 
-                    Continue For
-
-                    ' NORMAL = ghost kills Pac-Man
-                Else
-
-                    GameOver()
-
-                    Return
-
-                End If
+                GameOver()
+                Return
 
             End If
 
@@ -237,16 +234,56 @@
 
     End Sub
 
+    'Private Sub GameOver()
+
+    '   GameTimer.Stop()
+
+    '  MessageBox.Show(
+    ' "GAME OVER",
+    '"PAC-MAN",
+    'MessageBoxButtons.OK,
+    'MessageBoxIcon.Information
+    ')
+
+    'End Sub
+
     Private Sub GameOver()
-
         GameTimer.Stop()
+        IsGameOver = True
+        Me.Invalidate()
+    End Sub
 
-        MessageBox.Show(
-        "GAME OVER",
-        "PAC-MAN",
-        MessageBoxButtons.OK,
-        MessageBoxIcon.Information
-    )
+    Private Sub RestartGame()
+
+        Map.Reset()
+
+        Pacman = New PacMan(Map)
+        Blinky = New Blinky(Map, Pacman)
+        Pinky = New Pinky(Map, Pacman)
+        Inky = New Inky(Map, Pacman)
+        Carlos = New Carlos(Map, Pacman)
+
+        Ghosts.Clear()
+        Ghosts.Add(Blinky)
+        Ghosts.Add(Pinky)
+        Ghosts.Add(Inky)
+        Ghosts.Add(Carlos)
+
+        Blinky.InGhostHouse = False
+        Pinky.InGhostHouse = True
+        Inky.InGhostHouse = True
+        Carlos.InGhostHouse = True
+
+        Score = 0
+        FrightenedTimeRemaining = 0
+        GhostModeTimer = 0
+        GhostScatter = False
+        GhostReleaseIndex = 1
+        GhostReleaseTimer = 0
+        IsGameOver = False
+
+        GameTimer.Start()
+        Me.Invalidate()
 
     End Sub
 
@@ -390,6 +427,35 @@
                              10, GameMap.Height * TileSize + 10)
             End Using
         End Using
+
+        If IsGameOver Then
+
+            Using overlay As New SolidBrush(Color.FromArgb(180, 0, 0, 0))
+                g.FillRectangle(overlay, 0, 0, Me.ClientSize.Width, Me.ClientSize.Height)
+            End Using
+
+            Using bigFont As New Font("Arial", 28, FontStyle.Bold)
+                Dim text = "GAME OVER"
+                Dim size = g.MeasureString(text, bigFont)
+                Using brush As New SolidBrush(Color.Red)
+                    g.DrawString(text, bigFont, brush,
+                        (Me.ClientSize.Width - size.Width) / 2,
+                        (Me.ClientSize.Height - size.Height) / 2 - 20)
+                End Using
+            End Using
+
+            Using smallFont As New Font("Arial", 14)
+                Dim text2 = "Score: " & Score & "   |   Presiona ENTER para reiniciar"
+                Dim size2 = g.MeasureString(text2, smallFont)
+                Using brush As New SolidBrush(Color.White)
+                    g.DrawString(text2, smallFont, brush,
+                        (Me.ClientSize.Width - size2.Width) / 2,
+                        (Me.ClientSize.Height - size2.Height) / 2 + 20)
+                End Using
+            End Using
+
+        End If
+
     End Sub
 
 End Class

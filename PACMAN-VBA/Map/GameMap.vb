@@ -16,6 +16,12 @@
 }
 
     Public Sub New()
+        InitializeMaps()
+    End Sub
+    Public Sub Reset()
+        InitializeMaps()
+    End Sub
+    Public Sub InitializeMaps()
 
         Dim classicMap As Integer(,) = MapData.GetClassicMap()
 
