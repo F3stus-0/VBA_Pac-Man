@@ -48,6 +48,17 @@ Public Class GameForm
     Public Score As Integer = 0
     Private Const StartingLives As Integer = 3
     Private Lives As Integer = StartingLives
+    Private FruitActive As Boolean = False
+    Private FruitTimer As Integer = 0
+    Private FruitType As Integer = 0
+
+    Private IsVictory As Boolean = False
+
+    Private Const FruitDuration As Integer = 10000
+    Private Const FruitX As Integer = 13
+    Private Const FruitY As Integer = 18
+
+    Private PelletsEaten As Integer = 0
 
     Private GameTimer As New Timer()
     Private IsGameOver As Boolean = False
@@ -427,11 +438,17 @@ Public Class GameForm
             Return
         End If
 
-        If IsGameOver Then
+        If IsGameOver OrElse IsVictory Then
+
             If e.KeyCode = Keys.Enter Then
+
                 RestartGame()
+                ShowingMenu = False
+
             End If
+
             Return
+
         End If
 
         Select Case e.KeyCode
@@ -474,20 +491,67 @@ Public Class GameForm
         Dim mapY As Integer = Pacman.GetMapY()
 
         If Map.Has_PowerPellet(mapX, mapY) Then
+
             Map.PowerPelletMap(mapX, mapY) = False
+
             Score += 50
+            PelletsEaten += 1
+
             FrightenedTimeRemaining = FrightenedDuration
 
             For Each ghost As Ghost In Ghosts
 
                 If Not TypeOf ghost.StateMachine.CurrentState Is EatenState Then
-                    ghost.StateMachine.ChangeState(New FrighttenedState(), ghost)
+                    ghost.StateMachine.ChangeState(
+                New FrighttenedState(),
+                ghost
+            )
                 End If
 
             Next
+
         ElseIf Map.Has_Pellet(mapX, mapY) Then
+
             Map.PacDotMap(mapX, mapY) = False
+
             Score += 10
+            PelletsEaten += 1
+
+        End If
+
+        ' ==========================================
+        ' FRUTAS
+        ' ==========================================
+
+        If Not FruitActive Then
+
+            If PelletsEaten = 70 Then
+
+                FruitActive = True
+                FruitTimer = FruitDuration
+                FruitType = 1
+
+            ElseIf PelletsEaten = 170 Then
+
+                FruitActive = True
+                FruitTimer = FruitDuration
+                FruitType = 2
+
+            End If
+
+        End If
+
+        If FruitActive Then
+
+            FruitTimer -= GameTimer.Interval
+
+            If FruitTimer <= 0 Then
+
+                FruitTimer = 0
+                FruitActive = False
+
+            End If
+
         End If
 
         If FrightenedTimeRemaining > 0 Then
@@ -506,6 +570,25 @@ Public Class GameForm
 
                 Next
 
+            End If
+
+        End If
+
+        ' ==========================================
+        ' COMER FRUTA
+        ' ==========================================
+
+        If FruitActive AndAlso
+   mapX = FruitX AndAlso
+   mapY = FruitY Then
+
+            FruitActive = False
+            FruitTimer = 0
+
+            If FruitType = 1 Then
+                Score += 1000
+            Else
+                Score += 2000
             End If
 
         End If
@@ -560,7 +643,12 @@ Public Class GameForm
 
         End If
 
+        If AllPelletsEaten() Then
 
+            IsVictory = True
+            GameTimer.Stop()
+
+        End If
 
         Me.Invalidate()
     End Sub
@@ -676,11 +764,38 @@ Public Class GameForm
         Score = 0
         Lives = StartingLives
         IsGameOver = False
+        IsVictory = False
+        FruitActive = False
+        FruitTimer = 0
+        FruitType = 0
+        PelletsEaten = 0
 
         GameTimer.Start()
         Me.Invalidate()
 
     End Sub
+
+    Private Function AllPelletsEaten() As Boolean
+
+        For y As Integer = 0 To GameMap.Height - 1
+
+            For x As Integer = 0 To GameMap.Width - 1
+
+                If Map.PacDotMap(x, y) Then
+                    Return False
+                End If
+
+                If Map.PowerPelletMap(x, y) Then
+                    Return False
+                End If
+
+            Next
+
+        Next
+
+        Return True
+
+    End Function
 
     Private Sub DrawMainMenu(g As Graphics)
 
@@ -769,12 +884,121 @@ Public Class GameForm
 
     End Sub
 
+    Private Sub DrawVictoryScreen(g As Graphics)
+
+        Dim width As Integer = Me.ClientSize.Width
+        Dim height As Integer = Me.ClientSize.Height
+
+        ' Fondo arcade
+        Using bg As New System.Drawing.Drawing2D.LinearGradientBrush(
+        New Rectangle(0, 0, width, height),
+        Color.FromArgb(10, 10, 40),
+        Color.Black,
+        System.Drawing.Drawing2D.LinearGradientMode.Vertical)
+
+            g.FillRectangle(bg, 0, 0, width, height)
+
+        End Using
+
+        ' Título
+        Using titleFont As New Font("Arial", 40, FontStyle.Bold)
+
+            Dim title As String = "YOU WIN!"
+
+            Dim size = g.MeasureString(title, titleFont)
+
+            Using titleBrush As New SolidBrush(Color.Yellow)
+
+                g.DrawString(
+                title,
+                titleFont,
+                titleBrush,
+                CSng((width - size.Width) / 2),
+                CSng(height / 5)
+            )
+
+            End Using
+
+        End Using
+
+        ' Pac-Man
+        Dim pacSize As Integer = 50
+
+        Using pacBrush As New SolidBrush(Color.Yellow)
+
+            g.FillPie(
+            pacBrush,
+            width \ 2 - 100,
+            height \ 2 - 25,
+            pacSize,
+            pacSize,
+            30,
+            300
+        )
+
+        End Using
+
+        ' Mensaje
+        Using scoreFont As New Font("Arial", 20, FontStyle.Bold)
+
+            Dim scoreText As String =
+            "SCORE: " & Score
+
+            Dim size = g.MeasureString(scoreText, scoreFont)
+
+            Using scoreBrush As New SolidBrush(Color.White)
+
+                g.DrawString(
+                scoreText,
+                scoreFont,
+                scoreBrush,
+                CSng((width - size.Width) / 2),
+                CSng(height / 2 + 50)
+            )
+
+            End Using
+
+        End Using
+
+        ' Parpadeo
+        If (Environment.TickCount \ 500) Mod 2 = 0 Then
+
+            Using promptFont As New Font("Arial", 16, FontStyle.Bold)
+
+                Dim prompt As String =
+                "PRESIONA ENTER PARA JUGAR DE NUEVO"
+
+                Dim size = g.MeasureString(prompt, promptFont)
+
+                Using promptBrush As New SolidBrush(Color.White)
+
+                    g.DrawString(
+                    prompt,
+                    promptFont,
+                    promptBrush,
+                    CSng((width - size.Width) / 2),
+                    CSng(height * 2 / 3)
+                )
+
+                End Using
+
+            End Using
+
+        End If
+
+    End Sub
+
     Private Sub DrawMap(sender As Object, e As PaintEventArgs)
         Dim g = e.Graphics
         g.Clear(Color.Black)
 
         If ShowingMenu Then
             DrawMainMenu(g)
+            Return
+        End If
+
+        If IsVictory Then
+            DrawVictoryScreen(g)
             Return
         End If
 
@@ -925,6 +1149,95 @@ Public Class GameForm
     )
 
         Next
+
+        ' ==========================================
+        ' DIBUJAR FRUTA
+        ' ==========================================
+
+        If FruitActive Then
+
+            Dim fruitPixelX As Integer =
+        FruitX * TileSize
+
+            Dim fruitPixelY As Integer =
+        FruitY * TileSize
+
+            Dim fruitSize As Integer = TileSize - 4
+
+            Dim fruitRect As New Rectangle(
+        fruitPixelX + 2,
+        fruitPixelY + 2,
+        fruitSize,
+        fruitSize
+    )
+
+            If FruitType = 1 Then
+
+                ' Cereza
+                Using fruitBrush As New SolidBrush(Color.Red)
+
+                    g.FillEllipse(
+                fruitBrush,
+                fruitRect
+            )
+
+                    g.FillEllipse(
+                fruitBrush,
+                fruitRect.X + 7,
+                fruitRect.Y + 4,
+                fruitSize - 8,
+                fruitSize - 8
+            )
+
+                End Using
+
+                Using stemPen As New Pen(Color.Green, 2)
+
+                    g.DrawLine(
+                stemPen,
+                fruitRect.X + fruitSize \ 2,
+                fruitRect.Y + 4,
+                fruitRect.X + fruitSize \ 2 + 4,
+                fruitRect.Y - 3
+            )
+
+                End Using
+
+            Else
+
+                ' Fresa
+                Using fruitBrush As New SolidBrush(Color.Red)
+
+                    g.FillEllipse(
+                fruitBrush,
+                fruitRect
+            )
+
+                End Using
+
+                Using leafBrush As New SolidBrush(Color.Green)
+
+                    g.FillEllipse(
+                leafBrush,
+                fruitRect.X + 5,
+                fruitRect.Y,
+                8,
+                6
+            )
+
+                    g.FillEllipse(
+                leafBrush,
+                fruitRect.X + 11,
+                fruitRect.Y,
+                8,
+                6
+            )
+
+                End Using
+
+            End If
+
+        End If
 
         Using font As New Font("Arial", 16, FontStyle.Bold)
             Using brush As New SolidBrush(Color.White)
